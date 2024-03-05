@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  adb_free:
+    image: ghcr.io/oracle/adb-free:latest
+    container_name: adb_free
+    ports:
+      - "1521:1522"
+      - "1522:1522"
+      - "8443:8443"
+      - "27017:27017"
+    environment:
+      - WORKLOAD_TYPE=ADW
+      - WALLET_PASSWORD=Auto_MY_ADB_Wallet
+      - ADMIN_PASSWORD=Auto_MY_ADW_1234
+    cap_add:
+      - SYS_ADMIN
+    device:
+      - /dev/fuse
+    networks:
+      - adbs-network
+  
+        #database_setup:
+        #image: alpine:latest
+        #container_name: database_setup
+        #volumes:
+        #- ./tls_wallet:/tls_wallet
+        #depends_on:
+        #- adb_free
+        #command: sh -c "while [ \"$(podman inspect --format='{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}' adb_free)\" != 'healthy' ]; do sleep 1; done && rm -rf /scratch/tls_wallet && podman cp adb_free:/u01/app/oracle/wallets/tls_wallet /tls_wallet && export TNS_ADMIN=/tls_wallet"
+        #networks:
+        #- adbs-network
+
+        #data-loader:
+        #image: python:3.8
+        #container_name: data-loader
+        #depends_on:
+        #- adb_free
+        #volumes:
+        #- ./dev/abc.csv:/abc.csv
+        #- ./dev/load_data.py:/load_data.py
+        #command: sh -c "pip install oracledb python-dotenv && python3 /load_data.py"
+        #networks:
+        #- adbs-network
+        #profiles:
+        #- tools
+
+networks:
+  adbs-network:
+    driver: bridge
